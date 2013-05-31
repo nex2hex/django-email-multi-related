@@ -75,3 +75,31 @@ class EmailMultiRelated(EmailMultiAlternatives):
             attachment.add_header('Content-Type', mimetype, name=filename)
             attachment.add_header('Content-ID', '<%s>' % filename_content_id)
         return attachment
+
+    def set_body_template_jinja2(self, template_name, dictionary=None):
+        """
+        Render template using jinja
+        required coffin
+        """
+
+        # need to create new environment with self object
+        from coffin.common import CoffinEnvironment
+        from django.conf import settings
+        from template.jinja import email_embedded_file
+
+        kwargs = {
+            'autoescape': True
+        }
+        kwargs.update(getattr(settings, 'JINJA2_ENVIRONMENT_OPTIONS', {}))
+        kwargs['extensions'].append(email_embedded_media)
+
+        env = CoffinEnvironment(**kwargs)
+        env.email_object_instance = self
+        if settings.USE_I18N:
+            from django.utils import translation
+            env.install_gettext_translations(translation)
+
+        template = env.get_template(template_name)
+        self.body = template.render(dictionary)
+        self.content_subtype = 'html'
+
