@@ -6,7 +6,6 @@ from django.core.files.storage import default_storage
 
 from jinja2 import nodes
 from jinja2.ext import Extension
-from jinja2.exceptions import TemplateSyntaxError
 from coffin.template.library import Library
 
 
@@ -32,9 +31,9 @@ class EmailMultiRelatedFileEmbeddedExtension(Extension):
         if val == 'email_embedded_media':
             fullpath = default_storage.path(path)
         elif val == 'email_embedded_static':
-             fullpath = staticfiles_storage.path(path)
+            fullpath = staticfiles_storage.path(path)
         else:
-            return path
+            fullpath = path
         return 'cid:' + self.environment.email_object_instance.attach_related_file(fullpath)
 
 
