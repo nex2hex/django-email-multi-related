@@ -11,7 +11,7 @@ from coffin.template.library import Library
 
 
 class EmailMultiRelatedFileEmbeddedExtension(Extension):
-    tags = set(['email_embedded_media'])
+    tags = set(['email_embedded_media', 'email_embedded_static'])
 
     def __init__(self, environment):
         super(EmailMultiRelatedFileEmbeddedExtension, self).__init__(environment)
@@ -22,14 +22,20 @@ class EmailMultiRelatedFileEmbeddedExtension(Extension):
         )
 
     def parse(self, parser):
-        lineno = parser.stream.next().lineno
+        tag = parser.stream.next()
         path = parser.parse_expression()
         return nodes.Output([
-            self.call_method('_render', [path, nodes.Name('_current_app', 'load')]),
-        ]).set_lineno(lineno)
+            self.call_method('_render', [path, nodes.Const(tag.value), nodes.Name('_current_app', 'load')]),
+        ]).set_lineno(tag.lineno)
 
-    def _render(self, path, caller):
-        return 'cid:' + self.environment.email_object_instance.attach_related_file(default_storage.path(path))
+    def _render(self, path, val, caller):
+        if val == 'email_embedded_media':
+            fullpath = default_storage.path(path)
+        elif val == 'email_embedded_static':
+             fullpath = staticfiles_storage.path(path)
+        else:
+            return path
+        return 'cid:' + self.environment.email_object_instance.attach_related_file(fullpath)
 
 
 # nicer import names

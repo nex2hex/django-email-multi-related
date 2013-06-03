@@ -85,7 +85,7 @@ class EmailMultiRelated(EmailMultiAlternatives):
         # need to create new environment with self object
         from coffin.common import CoffinEnvironment
         from django.conf import settings
-        from template.jinja import email_embedded_file
+        from template.jinja import email_embedded_media
 
         kwargs = {
             'autoescape': True
