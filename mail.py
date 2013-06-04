@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import os, hashlib
-
+import os
+import hashlib
 from email.mime.base import MIMEBase
 from django.core.mail import EmailMultiAlternatives, SafeMIMEMultipart
 
 
-class EmailMultiRelated(EmailMultiAlternatives):
+class EmailMultiRelatedCore(EmailMultiAlternatives):
     """
     A version of EmailMessage that makes it easy to send multipart/related
     messages. For example, including text and HTML versions with inline images.
@@ -16,7 +16,7 @@ class EmailMultiRelated(EmailMultiAlternatives):
     def __init__(self, *args, **kwargs):
         self.related_attachments = []
         self.related_attachments_filename_content_id = []
-        super(EmailMultiRelated, self).__init__(*args, **kwargs)
+        super(EmailMultiRelatedCore, self).__init__(*args, **kwargs)
 
     def attach_related(self, filename=None, content=None, mimetype=None, filename_content_id=None):
         """
@@ -76,6 +76,23 @@ class EmailMultiRelated(EmailMultiAlternatives):
             attachment.add_header('Content-ID', '<%s>' % filename_content_id)
         return attachment
 
+
+class EmailMultiRelated(EmailMultiRelatedCore):
+    def set_body_template(self, template_name, dictionary=None):
+        """
+        Render template using django template
+        """
+
+        # need to create new environment with self object
+        from django.template.loader import get_template
+        from django.template.context import Context
+
+        t = get_template(template_name)
+        dictionary = dictionary if dictionary is not None else {}
+        dictionary['emailmultirelated_object'] = self
+        self.body = t.render(Context(dictionary))
+        self.content_subtype = 'html'
+
     def set_body_template_jinja2(self, template_name, dictionary=None):
         """
         Render template using jinja
@@ -85,7 +102,7 @@ class EmailMultiRelated(EmailMultiAlternatives):
         # need to create new environment with self object
         from coffin.common import CoffinEnvironment
         from django.conf import settings
-        from template.jinja import email_embedded_media
+        from jinja import email_embedded_media
 
         kwargs = {
             'autoescape': True
