@@ -2,6 +2,7 @@
 
 import os
 import hashlib
+from BeautifulSoup import BeautifulSoup
 from email.mime.base import MIMEBase
 from django.core.mail import EmailMultiAlternatives, SafeMIMEMultipart
 
@@ -78,6 +79,10 @@ class EmailMultiRelatedCore(EmailMultiAlternatives):
 
 
 class EmailMultiRelated(EmailMultiRelatedCore):
+    def make_body(self, text):
+        self.body = ''.join(BeautifulSoup(text).findAll(text=True)).strip()
+        self.attach_alternative(text, 'text/html')
+
     def set_body_template(self, template_name, dictionary=None):
         """
         Render template using django template
@@ -90,8 +95,7 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         t = get_template(template_name)
         dictionary = dictionary if dictionary is not None else {}
         dictionary['emailmultirelated_object'] = self
-        self.body = t.render(Context(dictionary))
-        self.content_subtype = 'html'
+        self.make_body(t.render(Context(dictionary)))
 
     def set_body_template_jinja2(self, template_name, dictionary=None):
         """
@@ -117,6 +121,6 @@ class EmailMultiRelated(EmailMultiRelatedCore):
             env.install_gettext_translations(translation)
 
         template = env.get_template(template_name)
-        self.body = template.render(dictionary)
-        self.content_subtype = 'html'
+        self.make_body(template.render(dictionary))
+
 
