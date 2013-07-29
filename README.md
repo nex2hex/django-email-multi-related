@@ -1,8 +1,7 @@
 django-email-multi-related
 ==========================
 
-Send HTML emails with embedded images in Django from templates. Required [Django](https://github.com/django/django) >= 1.4 and [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/).
-Automatically generate text version of email.
+Send HTML emails with embedded images in Django from templates. Required [Django](https://github.com/django/django) >= 1.4 and [BeautifulSoup4](http://www.crummy.com/software/BeautifulSoup/) with `lxml` http://www.crummy.com/software/BeautifulSoup/bs4/doc/#parser-installation parser for automatically generat text version of email.
 
 Send emails using django templates
 -----

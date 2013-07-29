@@ -2,7 +2,6 @@
 
 import os
 import hashlib
-from BeautifulSoup import BeautifulSoup
 from email.mime.base import MIMEBase
 from django.core.mail import EmailMultiAlternatives, SafeMIMEMultipart
 
@@ -80,8 +79,28 @@ class EmailMultiRelatedCore(EmailMultiAlternatives):
 
 class EmailMultiRelated(EmailMultiRelatedCore):
     def make_body(self, text):
-        self.body = ''.join(BeautifulSoup(text).findAll(text=True)).strip()
-        self.attach_alternative(text, 'text/html')
+        try:
+            from bs4 import BeautifulSoup, FeatureNotFound
+            from bs4.element import Comment
+
+            html = BeautifulSoup(text, 'lxml')
+            # remove comments from text
+            for c in html.find_all(text=lambda t: isinstance(t, Comment)):
+                c.extract()
+            # set links from a tag to text
+            for tag in html.find_all(True):
+                if tag.name == 'a':
+                    href = tag.attrs.get('href', '')
+                    if href and not href.startswith('#'):
+                        contents = ''.join(tag.contents)
+                        if href.find(contents) != -1:
+                            tag.replace_with(' ' + href + ' ')
+                        elif href != contents:
+                            tag.replace_with(''.join(tag.contents) + ' ' + href + ' ')
+            self.body = html.get_text().strip()
+            self.attach_alternative(text, 'text/html')
+        except (ImportError, FeatureNotFound):
+            pass
 
     def set_body_template(self, template_name, dictionary=None):
         """
