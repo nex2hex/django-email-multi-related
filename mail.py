@@ -123,22 +123,12 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         """
 
         # need to create new environment with self object
-        from coffin.common import CoffinEnvironment
-        from django.conf import settings
+        from coffin.common import get_env
         from jinja import email_embedded_media
 
-        kwargs = {
-            'autoescape': True
-        }
-        kwargs.update(getattr(settings, 'JINJA2_ENVIRONMENT_OPTIONS', {}))
-        kwargs['extensions'].append(email_embedded_media)
-
-        env = CoffinEnvironment(**kwargs)
+        env = get_env()
+        env.add_extension(email_embedded_media)
         env.email_object_instance = self
-        if settings.USE_I18N:
-            from django.utils import translation
-            env.install_gettext_translations(translation)
-
         template = env.get_template(template_name)
         self.make_body(template.render(dictionary))
 
