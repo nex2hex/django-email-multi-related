@@ -92,11 +92,11 @@ class EmailMultiRelated(EmailMultiRelatedCore):
                 if tag.name == 'a':
                     href = tag.attrs.get('href', '')
                     if href and not href.startswith('#'):
-                        contents = ''.join(tag.contents)
+                        contents = reduce(lambda x, y: unicode(x) + unicode(y), tag.contents)
                         if href.find(contents) != -1:
-                            tag.replace_with(' ' + href + ' ')
+                            tag.replace_with(' %s ' % href)
                         elif href != contents:
-                            tag.replace_with(''.join(tag.contents) + ' ' + href + ' ')
+                            tag.replace_with('%s %s ' %(contents, href))
             self.body = html.get_text().strip()
             self.attach_alternative(text, 'text/html')
         except (ImportError, FeatureNotFound):
