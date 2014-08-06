@@ -102,7 +102,7 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         except (ImportError, FeatureNotFound):
             pass
 
-    def set_body_template(self, template_name, dictionary=None):
+    def set_body_template(self, template_name, context=None):
         """
         Render template using django template
         """
@@ -112,11 +112,11 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         from django.template.context import Context
 
         t = get_template(template_name)
-        dictionary = dictionary if dictionary is not None else {}
+        dictionary = context if context is not None else {}
         dictionary['emailmultirelated_object'] = self
         self.make_body(t.render(Context(dictionary)))
 
-    def set_body_template_jinja2(self, template_name, dictionary=None):
+    def set_body_template_jinja2(self, template_name=None, context=None, template=None):
         """
         Render template using jinja
         required coffin
@@ -129,7 +129,7 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         env = get_env()
         env.add_extension(email_embedded_media)
         env.email_object_instance = self
-        template = env.get_template(template_name)
-        self.make_body(template.render(dictionary))
+        template_code = template if template else env.get_template(template_name)
+        self.make_body(template_code.render(context))
 
 
