@@ -129,7 +129,7 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         env = get_env()
         env.add_extension(email_embedded_media)
         env.email_object_instance = self
-        template_code = template if template else env.get_template(template_name)
+        template_code = env.from_string(template) if template else env.get_template(template_name)
         self.make_body(template_code.render(context))
 
 
