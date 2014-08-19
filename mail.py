@@ -78,28 +78,39 @@ class EmailMultiRelatedCore(EmailMultiAlternatives):
 
 
 class EmailMultiRelated(EmailMultiRelatedCore):
-    def make_body(self, text):
+    def make_body(self, content):
         try:
             from bs4 import BeautifulSoup, FeatureNotFound
             from bs4.element import Comment
 
-            html = BeautifulSoup(text, 'lxml')
-            # remove comments from text
-            for c in html.find_all(text=lambda t: isinstance(t, Comment)):
-                c.extract()
-            # set links from a tag to text
-            for tag in html.find_all(True):
-                if tag.name == 'a':
-                    href = tag.attrs.get('href', '')
-                    if href and not href.startswith('#'):
-                        contents = reduce(lambda x, y: unicode(x) + unicode(y), tag.contents) if tag.contents else ''
-                        if href.find(contents) != -1:
-                            tag.replace_with(' %s ' % href)
-                        elif href != contents:
-                            tag.replace_with('%s %s ' %(contents, href))
-            self.body = html.get_text().strip()
-            self.attach_alternative(text, 'text/html')
-        except (ImportError, FeatureNotFound):
+            try:
+                html = BeautifulSoup(content, 'lxml')
+                # remove comments from text
+                for c in html.find_all(text=lambda t: isinstance(t, Comment)):
+                    c.extract()
+
+                # set links from a tag to text
+                for tag in html.find_all(True):
+                    if tag.name == 'a':
+                        href = tag.attrs.get('href', '')
+                        if href and not href.startswith('#'):
+                            contents = reduce(lambda x, y: unicode(x) + unicode(y), tag.contents) if tag.contents else ''
+                            if href.find(contents) != -1:
+                                tag.replace_with(' %s ' % href)
+                            elif href != contents:
+                                tag.replace_with('%s %s ' % (contents, href))
+                # trim each line in plaintext
+                text = []
+                for line in html.get_text().strip().split('\n'):
+                    text.append(line.strip(' \t\n\r'))
+                text = '\r\n'.join(text)
+
+                # plaintext version comes first to set better preheaders
+                self.body = text
+                self.attach_alternative(content, 'text/html')
+            except FeatureNotFound:
+                pass
+        except ImportError:
             pass
 
     def set_body_template(self, template_name, context=None):
