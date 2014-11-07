@@ -94,7 +94,7 @@ class EmailMultiRelated(EmailMultiRelatedCore):
                     if tag.name == 'a':
                         href = tag.attrs.get('href', '')
                         if href and not href.startswith('#'):
-                            contents = reduce(lambda x, y: unicode(x) + unicode(y), tag.contents) if tag.contents else ''
+                            contents = unicode(tag.string) if tag.string else ''
                             if href.find(contents) != -1:
                                 tag.replace_with(' %s ' % href)
                             elif href != contents:
