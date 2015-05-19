@@ -6,7 +6,6 @@ from django.core.files.storage import default_storage
 
 from jinja2 import nodes
 from jinja2.ext import Extension
-from coffin.template.library import Library
 
 
 class EmailMultiRelatedFileEmbeddedExtension(Extension):
@@ -39,6 +38,3 @@ class EmailMultiRelatedFileEmbeddedExtension(Extension):
 
 # nicer import names
 email_embedded_media = EmailMultiRelatedFileEmbeddedExtension
-
-register = Library()
-register.tag(email_embedded_media)

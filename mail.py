@@ -4,6 +4,8 @@ import os
 import hashlib
 from email.mime.base import MIMEBase
 from django.core.mail import EmailMultiAlternatives, SafeMIMEMultipart
+from django.template.loader import render_to_string
+from django.template import engines
 
 
 class EmailMultiRelatedCore(EmailMultiAlternatives):
@@ -113,34 +115,23 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         except ImportError:
             pass
 
-    def set_body_template(self, template_name, context=None):
+    def set_body_template(self, template_name=None, context=None, template_code=None, using=None):
         """
         Render template using django template
         """
 
-        # need to create new environment with self object
-        from django.template.loader import get_template
-        from django.template.context import Context
-
-        t = get_template(template_name)
         dictionary = context if context is not None else {}
         dictionary['emailmultirelated_object'] = self
-        self.make_body(t.render(Context(dictionary)))
+        if template_name:
+            return self.make_body(render_to_string(template_name, dictionary, using=using))
+        elif template_code:
+            engines_list = engines.all() if using is None else [engines[using]]
+            for engine in engines_list:
+                template = engine.from_string(template_code)
+                if template:
+                    return self.make_body(template.render(dictionary))
 
-    def set_body_template_jinja2(self, template_name=None, context=None, template=None):
-        """
-        Render template using jinja
-        required coffin
-        """
+        raise Exception('No template name provided')
 
-        # need to create new environment with self object
-        from coffin.common import get_env
-        from jinja import email_embedded_media
-
-        env = get_env()
-        env.add_extension(email_embedded_media)
-        env.email_object_instance = self
-        template_code = env.from_string(template) if template else env.get_template(template_name)
-        self.make_body(template_code.render(context))
 
 

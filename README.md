@@ -25,11 +25,11 @@ Example of email_template.html
 
 Send emails using Jinja2 templates
 -----
-Required [Jinja2](https://github.com/mitsuhiko/jinja2) and [Coffin](https://github.com/coffin/coffin/)
+Required [Jinja2](https://github.com/mitsuhiko/jinja2)
 
     from emailmultirelated.mail import EmailMultiRelated
     email = EmailMultiRelated('email title', to=['nex2hex@gmail.com'])
-    email.set_body_template_jinja2('email_template.html', {})
+    email.set_body_template('email_template.html', {}, using='jinja')
     email.send()
     
 Example of email_template.html
