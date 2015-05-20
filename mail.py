@@ -115,7 +115,7 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         except ImportError:
             pass
 
-    def set_body_template(self, template_name=None, context=None, template_code=None, using=None):
+    def set_body_template(self, template_name=None, context=None, template_code=None, request=None, using=None):
         """
         Render template using django template
         """
@@ -123,13 +123,13 @@ class EmailMultiRelated(EmailMultiRelatedCore):
         dictionary = context if context is not None else {}
         dictionary['emailmultirelated_object'] = self
         if template_name:
-            return self.make_body(render_to_string(template_name, dictionary, using=using))
+            return self.make_body(render_to_string(template_name, dictionary, request=request, using=using))
         elif template_code:
             engines_list = engines.all() if using is None else [engines[using]]
             for engine in engines_list:
                 template = engine.from_string(template_code)
                 if template:
-                    return self.make_body(template.render(dictionary))
+                    return self.make_body(template.render(dictionary, request))
 
         raise Exception('No template name provided')
 
